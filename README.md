@@ -27,7 +27,9 @@ Azureタスクボード風のカンバン形式TODOリスト管理アプリケ�
 
 - Node.js 18以上
 - npm または yarn
-- Supabaseアカウント
+- Docker Desktop（ローカルDB用）
+- Supabase CLI（ローカル開発用）
+- Supabaseアカウント（本番環境用）
 
 ### インストール手順
 
@@ -44,18 +46,35 @@ cd todo-app
 npm install
 ```
 
-3. **環境変数を設定**
+3. **Supabase CLIをインストール**
 
-`.env.local` ファイルを作成し、以下を設定：
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```bash
+npm install -g supabase
 ```
 
-4. **Supabaseデータベースをセットアップ**
+4. **ローカルSupabaseを起動**
 
-Supabaseプロジェクトで以下のSQLを実行：
+```bash
+supabase start
+```
+
+起動後、接続情報が表示されます：
+- API URL: http://127.0.0.1:54321
+- Studio URL: http://127.0.0.1:54323
+- Database URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+
+5. **環境変数を設定**
+
+`.env.local` ファイルを作成し、`supabase start` で表示された情報を設定：
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=（表示されたPublishable key）
+```
+
+6. **Supabaseデータベースをセットアップ**
+
+Supabase Studio（http://127.0.0.1:54323）のSQLエディタで以下を実行：
 
 ```sql
 CREATE TABLE tasks (
@@ -76,13 +95,23 @@ CREATE INDEX idx_tasks_order ON tasks("order");
 ALTER TABLE tasks DISABLE ROW LEVEL SECURITY;
 ```
 
-5. **開発サーバーを起動**
+7. **開発サーバーを起動**
 
 ```bash
 npm run dev
 ```
 
 ブラウザで http://localhost:3000 を開く
+
+### 本番環境（Supabaseクラウド）へのデプロイ準備
+
+本番環境では認証機能が必要です：
+
+1. Supabaseプロジェクトを作成
+2. 上記SQLを実行してテーブルを作成
+3. Row Level Security (RLS) を有効化
+4. `.env.local` を本番用のURLとキーに変更
+5. `lib/supabase.ts` で `NODE_ENV` が 'production' の場合の処理を確認
 
 ## 📝 使い方
 
@@ -105,10 +134,35 @@ npm run dev
 ### Vercelへのデプロイ
 
 1. GitHubリポジトリをVercelに接続
-2. 環境変数を設定：
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-3. デプロイボタンをクリック
+2. 本番用Supabaseプロジェクトを作成し、テーブルをセットアップ
+3. Vercelで環境変数を設定：
+   - `NEXT_PUBLIC_SUPABASE_URL`（本番用URL）
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`（本番用キー）
+4. デプロイボタンをクリック
+
+**注意**: 本番環境では認証機能の実装とRLSの有効化が推奨されます。
+
+## 🛠️ 開発時のコマンド
+
+```bash
+# ローカルSupabaseを起動
+supabase start
+
+# ローカルSupabaseを停止
+supabase stop
+
+# Supabase Studioを開く
+# http://127.0.0.1:54323
+
+# Next.js開発サーバー起動
+npm run dev
+
+# ビルド
+npm run build
+
+# 本番モードで起動
+npm start
+```
 
 ## 📂 プロジェクト構造
 
@@ -133,13 +187,21 @@ todo-app/
 
 ## 🔮 今後の拡張予定
 
-- [ ] ユーザー認証機能
+- [ ] ユーザー認証機能（本番環境用）
+- [ ] Row Level Security (RLS) の実装
 - [ ] チーム共有機能
 - [ ] タスクの検索・フィルタリング
 - [ ] 期限アラート通知
 - [ ] タスクのアーカイブ機能
 - [ ] ダークモード対応
 - [ ] モバイルアプリ化
+
+## ⚠️ 注意事項
+
+- **開発環境**: 認証なしで動作（`NODE_ENV=development`）
+- **本番環境**: 認証が必要（実装予定）
+- **RLS**: 現在は無効化（開発用）。本番環境では有効化を推奨
+- **Docker**: Supabaseローカル環境にはDocker Desktopが必要
 
 ## 📄 ライセンス
 
