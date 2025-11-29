@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/lib/auth-context";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
-  title: "task-board Kanban Board",
-  description: "A Kanban board for managing tasks with drag and drop",
+  title: "タスクボード",
+  description: "カンバンボード形式のタスク管理アプリ",
 };
 
 export default function RootLayout({
@@ -16,7 +19,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   );
 }

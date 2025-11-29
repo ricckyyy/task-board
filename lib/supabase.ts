@@ -6,11 +6,16 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// タスクを全取得
+// タスクを全取得（ログインユーザーのみ）
 export async function fetchTasks(): Promise<Task[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) return [];
+
   const { data, error } = await supabase
     .from('tasks')
     .select('*')
+    .eq('user_id', user.id)
     .order('order', { ascending: true });
 
   if (error) {
@@ -22,10 +27,14 @@ export async function fetchTasks(): Promise<Task[]> {
 }
 
 // タスクを作成
-export async function createTask(task: Omit<Task, 'id' | 'created_at' | 'updated_at'>): Promise<Task | null> {
+export async function createTask(task: Omit<Task, 'id' | 'created_at' | 'updated_at' | 'user_id'>): Promise<Task | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) return null;
+
   const { data, error } = await supabase
     .from('tasks')
-    .insert([task])
+    .insert([{ ...task, user_id: user.id }])
     .select()
     .single();
 

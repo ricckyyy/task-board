@@ -5,23 +5,31 @@ import { DndContext, DragEndEvent, DragOverEvent, closestCorners } from '@dnd-ki
 import { arrayMove } from '@dnd-kit/sortable';
 import Column from '@/components/Column';
 import TaskModal from '@/components/TaskModal';
+import AuthModal from '@/components/AuthModal';
 import { Task, TaskStatus, Column as ColumnType } from '@/lib/types';
 import { fetchTasks, createTask, updateTask, deleteTask } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
 
 export default function Home() {
+  const { user, loading: authLoading, signOut } = useAuth();
   const [columns, setColumns] = useState<ColumnType[]>([
     { id: 'TODO', title: 'TODO', tasks: [] },
     { id: 'IN_PROGRESS', title: 'IN PROGRESS', tasks: [] },
     { id: 'DONE', title: 'DONE', tasks: [] },
   ]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
 
   // タスクを読み込み
   useEffect(() => {
-    loadTasks();
-  }, []);
+    if (!authLoading && user) {
+      loadTasks();
+    } else if (!authLoading && !user) {
+      setIsLoading(false);
+    }
+  }, [user, authLoading]);
 
   const loadTasks = async () => {
     setIsLoading(true);
@@ -51,7 +59,7 @@ export default function Home() {
         ...taskData,
         status: 'TODO',
         order: maxOrder + 1,
-      } as Omit<Task, 'id' | 'created_at' | 'updated_at'>);
+      } as Omit<Task, 'id' | 'created_at' | 'updated_at' | 'user_id'>);
       
       if (newTask) {
         loadTasks();
@@ -153,10 +161,29 @@ export default function Home() {
     }
   };
 
-  if (isLoading) {
+  // 未ログイン時の表示
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-xl text-gray-600">読み込み中...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-lg shadow-md text-center">
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">タスクボード</h1>
+          <p className="text-gray-600 mb-6">カンバンボード形式のタスク管理アプリ</p>
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            ログイン / サインアップ
+          </button>
+        </div>
+        <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       </div>
     );
   }
@@ -165,16 +192,25 @@ export default function Home() {
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">task ボード</h1>
-          <button
-            onClick={() => {
-              setEditingTask(undefined);
-              setIsModalOpen(true);
-            }}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            + 新しいタスク
-          </button>
+          <h1 className="text-3xl font-bold text-gray-800">タスクボード</h1>
+          <div className="flex gap-3 items-center">
+            <span className="text-sm text-gray-600">{user.email}</span>
+            <button
+              onClick={signOut}
+              className="text-sm text-gray-600 hover:text-gray-800 px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              ログアウト
+            </button>
+            <button
+              onClick={() => {
+                setEditingTask(undefined);
+                setIsModalOpen(true);
+              }}
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              + 新しいタスク
+            </button>
+          </div>
         </div>
 
         <DndContext
