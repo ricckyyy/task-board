@@ -8,6 +8,26 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // タスクを全取得（ログインユーザーのみ）
 export async function fetchTasks(): Promise<Task[]> {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  console.log('fetchTasks called, isDevelopment:', isDevelopment);
+  
+  // 開発環境では認証なしで全件取得
+  if (isDevelopment) {
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .order('order', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching tasks:', error);
+      return [];
+    }
+
+    console.log('Fetched tasks:', data);
+    return data || [];
+  }
+  
+  // 本番環境では認証必須
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) return [];
@@ -28,6 +48,28 @@ export async function fetchTasks(): Promise<Task[]> {
 
 // タスクを作成
 export async function createTask(task: Omit<Task, 'id' | 'created_at' | 'updated_at' | 'user_id'>): Promise<Task | null> {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  console.log('createTask called, isDevelopment:', isDevelopment);
+  console.log('task data:', task);
+  
+  // 開発環境では認証なしで作成
+  if (isDevelopment) {
+    const { data, error } = await supabase
+      .from('tasks')
+      .insert([task])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating task:', error);
+      return null;
+    }
+
+    console.log('Created task:', data);
+    return data;
+  }
+  
+  // 本番環境では認証必須
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) return null;

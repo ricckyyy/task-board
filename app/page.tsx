@@ -53,14 +53,18 @@ export default function Home() {
 
   // タスクを作成・更新
   const handleSaveTask = async (taskData: Partial<Task>) => {
+    console.log('handleSaveTask called with:', taskData);
     if (editingTask) {
       // 更新
+      console.log('Updating task:', editingTask.id);
       const updated = await updateTask(editingTask.id, taskData);
       if (updated) {
+        console.log('Task updated successfully');
         loadTasks();
       }
     } else {
       // 新規作成
+      console.log('Creating new task');
       const maxOrder = Math.max(...columns[0].tasks.map(t => t.order), 0);
       const newTask = await createTask({
         ...taskData,
@@ -69,7 +73,10 @@ export default function Home() {
       } as Omit<Task, 'id' | 'created_at' | 'updated_at' | 'user_id'>);
       
       if (newTask) {
+        console.log('Task created successfully:', newTask);
         loadTasks();
+      } else {
+        console.error('Failed to create task');
       }
     }
     setEditingTask(undefined);
