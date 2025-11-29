@@ -10,6 +10,9 @@ import { Task, TaskStatus, Column as ColumnType } from '@/lib/types';
 import { fetchTasks, createTask, updateTask, deleteTask } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 
+// 開発環境かどうかをチェック
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 export default function Home() {
   const { user, loading: authLoading, signOut } = useAuth();
   const [columns, setColumns] = useState<ColumnType[]>([
@@ -24,7 +27,11 @@ export default function Home() {
 
   // タスクを読み込み
   useEffect(() => {
-    if (!authLoading && user) {
+    // 開発環境では認証なしで読み込み
+    if (isDevelopment) {
+      loadTasks();
+    } else if (!authLoading && user) {
+      // 本番環境ではログイン後に読み込み
       loadTasks();
     } else if (!authLoading && !user) {
       setIsLoading(false);
@@ -92,7 +99,6 @@ export default function Home() {
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    // カラム間の移動を処理
     const activeColumn = columns.find(col => 
       col.tasks.some(task => task.id === activeId)
     );
@@ -149,19 +155,16 @@ export default function Home() {
         )
       );
 
-      // 順序を更新
       const task = activeColumn.tasks[oldIndex];
       await updateTask(task.id, { order: newIndex });
     }
 
-    // ステータス変更をDBに保存
     const task = activeColumn.tasks.find(t => t.id === activeId);
     if (task && task.status !== activeColumn.id) {
       await updateTask(task.id, { status: activeColumn.id });
     }
   };
 
-  // 未ログイン時の表示
   if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -170,7 +173,8 @@ export default function Home() {
     );
   }
 
-  if (!user) {
+  // 本番環境で未ログイン時
+  if (!isDevelopment && !user) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="bg-white p-8 rounded-lg shadow-md text-center">
@@ -194,13 +198,22 @@ export default function Home() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800">タスクボード</h1>
           <div className="flex gap-3 items-center">
-            <span className="text-sm text-gray-600">{user.email}</span>
-            <button
-              onClick={signOut}
-              className="text-sm text-gray-600 hover:text-gray-800 px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              ログアウト
-            </button>
+            {isDevelopment && (
+              <span className="text-sm text-gray-600 bg-yellow-100 px-3 py-1 rounded border border-yellow-300">
+                🚧 開発モード
+              </span>
+            )}
+            {!isDevelopment && user && (
+              <>
+                <span className="text-sm text-gray-600">{user.email}</span>
+                <button
+                  onClick={signOut}
+                  className="text-sm text-gray-600 hover:text-gray-800 px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  ログアウト
+                </button>
+              </>
+            )}
             <button
               onClick={() => {
                 setEditingTask(undefined);
