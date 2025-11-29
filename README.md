@@ -33,26 +33,19 @@ Azureタスクボード風のカンバン形式TODOリスト管理アプリケ�
 
 ### インストール手順
 
-1. **リポジトリをクローン**
-
-```bash
-git clone [あなたのリポジトリURL]
-cd todo-app
-```
-
-2. **依存パッケージをインストール**
+1. **依存パッケージをインストール**
 
 ```bash
 npm install
 ```
 
-3. **Supabase CLIをインストール**
+2. **Supabase CLIをインストール**
 
 ```bash
 npm install -g supabase
 ```
 
-4. **ローカルSupabaseを起動**
+3. **ローカルSupabaseを起動**
 
 ```bash
 supabase start
@@ -63,7 +56,7 @@ supabase start
 - Studio URL: http://127.0.0.1:54323
 - Database URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
 
-5. **環境変数を設定**
+4. **環境変数を設定**
 
 `.env.local` ファイルを作成し、`supabase start` で表示された情報を設定：
 
@@ -72,7 +65,7 @@ NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 NEXT_PUBLIC_SUPABASE_ANON_KEY=（表示されたPublishable key）
 ```
 
-6. **Supabaseデータベースをセットアップ**
+5. **Supabaseデータベースをセットアップ**
 
 Supabase Studio（http://127.0.0.1:54323）のSQLエディタで以下を実行：
 
@@ -95,7 +88,7 @@ CREATE INDEX idx_tasks_order ON tasks("order");
 ALTER TABLE tasks DISABLE ROW LEVEL SECURITY;
 ```
 
-7. **開発サーバーを起動**
+6. **開発サーバーを起動**
 
 ```bash
 npm run dev
