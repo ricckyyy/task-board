@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "TODO Kanban Board",
-  description: "A Kanban board for managing TODO tasks with drag and drop",
+  title: "task-board Kanban Board",
+  description: "A Kanban board for managing tasks with drag and drop",
 };
 
 export default function RootLayout({
