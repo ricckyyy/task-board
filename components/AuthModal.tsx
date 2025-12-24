@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import { isSupabaseConfigured } from '@/lib/supabase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const { signUp, signIn } = useAuth();
+  const configured = isSupabaseConfigured();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +35,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     } else {
       const { error } = await signIn(email, password);
       if (error) {
-        setError('メールアドレスまたはパスワードが正しくありません');
+        setError(error.message || 'メールアドレスまたはパスワードが正しくありません');
       } else {
         onClose();
       }
@@ -48,6 +50,16 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         <h2 className="text-2xl font-bold mb-4">
           {isSignUp ? 'サインアップ' : 'ログイン'}
         </h2>
+
+        {!configured && (
+          <div className="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded-md text-sm">
+            <p className="font-semibold mb-1">⚠️ 環境設定が必要です</p>
+            <p className="text-xs">
+              .env.localファイルにSupabaseの環境変数を設定してください。
+              詳しくはREADME.mdを参照してください。
+            </p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
