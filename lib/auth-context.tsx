@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email, 
         password,
         options: {
-          emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+          ...(typeof window !== 'undefined' && { emailRedirectTo: window.location.origin }),
         }
       });
       
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error };
       }
       
-      return { error: null };
+      return { error: undefined };
     } catch (err) {
       console.error('Signup exception:', err);
       // ネットワークエラーやその他の例外の場合
@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error };
       }
       
-      return { error: null };
+      return { error: undefined };
     } catch (err) {
       console.error('Sign in exception:', err);
       // ネットワークエラーやその他の例外の場合
