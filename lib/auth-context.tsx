@@ -53,6 +53,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       };
     }
+    
+    console.log('SignUp attempt started');
+    
     try {
       const { data, error } = await supabase.auth.signUp({ 
         email, 
@@ -62,18 +65,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       });
       
+      console.log('SignUp response received:', { data, error });
+      
       if (error) {
         console.error('Signup error:', error);
         return { error };
+      }
+      
+      // Check if email confirmation is required
+      if (data?.user && !data.session) {
+        console.log('Email confirmation required for user:', data.user.id);
       }
       
       return { error: undefined };
     } catch (err) {
       console.error('Signup exception:', err);
       // ネットワークエラーやその他の例外の場合
+      const errorMessage = err instanceof Error 
+        ? `${err.name}: ${err.message}` 
+        : 'アカウント作成に失敗しました。ネットワーク接続を確認してください。';
+      
       return {
         error: {
-          message: err instanceof Error ? err.message : 'アカウント作成に失敗しました。ネットワーク接続を確認してください。',
+          message: errorMessage,
         },
       };
     }
@@ -87,8 +101,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       };
     }
+    
+    console.log('SignIn attempt started');
+    
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      console.log('SignIn response received:', { data, error });
       
       if (error) {
         console.error('Sign in error:', error);
@@ -99,9 +118,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error('Sign in exception:', err);
       // ネットワークエラーやその他の例外の場合
+      const errorMessage = err instanceof Error 
+        ? `${err.name}: ${err.message}` 
+        : 'ログインに失敗しました。ネットワーク接続を確認してください。';
+      
       return {
         error: {
-          message: err instanceof Error ? err.message : 'ログインに失敗しました。ネットワーク接続を確認してください。',
+          message: errorMessage,
         },
       };
     }
