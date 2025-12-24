@@ -57,6 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signUp({ email, password });
       return { error };
     } catch (err) {
+      console.error('Signup error:', err);
       return {
         error: {
           message: 'アカウント作成に失敗しました。環境設定とネットワーク接続を確認してください。',
@@ -77,6 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       return { error };
     } catch (err) {
+      console.error('Sign in error:', err);
       return {
         error: {
           message: 'ログインに失敗しました。環境設定とネットワーク接続を確認してください。',

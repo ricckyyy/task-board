@@ -56,7 +56,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             <p className="font-semibold mb-1">⚠️ 環境設定が必要です</p>
             <p className="text-xs">
               .env.localファイルにSupabaseの環境変数を設定してください。
-              詳しくはREADME.mdを参照してください。
+              詳しくはSETUP_GUIDE.mdを参照してください。
             </p>
           </div>
         )}
