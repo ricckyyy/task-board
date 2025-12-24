@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
-import { supabase } from './supabase';
+import { supabase, isSupabaseConfigured } from './supabase';
 
 interface AuthContextType {
   user: User | null;
@@ -19,6 +19,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 環境変数のチェック
+    if (!isSupabaseConfigured()) {
+      console.error('⚠️ Supabase環境変数が設定されていません');
+      console.error('以下の環境変数を.env.localファイルに設定してください：');
+      console.error('- NEXT_PUBLIC_SUPABASE_URL');
+      console.error('- NEXT_PUBLIC_SUPABASE_ANON_KEY');
+      setLoading(false);
+      return;
+    }
+
     // 現在のセッションをチェック
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -36,13 +46,88 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
-    return { error };
+    if (!isSupabaseConfigured()) {
+      return {
+        error: {
+          message: '環境設定が正しく行われていません。.env.localファイルを確認してください。',
+        },
+      };
+    }
+    
+    console.log('SignUp attempt started');
+    
+    try {
+      const { data, error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          ...(typeof window !== 'undefined' && { emailRedirectTo: window.location.origin }),
+        }
+      });
+      
+      console.log('SignUp response received:', { data, error });
+      
+      if (error) {
+        console.error('Signup error:', error);
+        return { error };
+      }
+      
+      // Check if email confirmation is required
+      if (data?.user && !data.session) {
+        console.log('Email confirmation required for user:', data.user.id);
+      }
+      
+      return { error: undefined };
+    } catch (err) {
+      console.error('Signup exception:', err);
+      // ネットワークエラーやその他の例外の場合
+      const errorMessage = err instanceof Error 
+        ? `${err.name}: ${err.message}` 
+        : 'アカウント作成に失敗しました。ネットワーク接続を確認してください。';
+      
+      return {
+        error: {
+          message: errorMessage,
+        },
+      };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    if (!isSupabaseConfigured()) {
+      return {
+        error: {
+          message: '環境設定が正しく行われていません。.env.localファイルを確認してください。',
+        },
+      };
+    }
+    
+    console.log('SignIn attempt started');
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      console.log('SignIn response received:', { data, error });
+      
+      if (error) {
+        console.error('Sign in error:', error);
+        return { error };
+      }
+      
+      return { error: undefined };
+    } catch (err) {
+      console.error('Sign in exception:', err);
+      // ネットワークエラーやその他の例外の場合
+      const errorMessage = err instanceof Error 
+        ? `${err.name}: ${err.message}` 
+        : 'ログインに失敗しました。ネットワーク接続を確認してください。';
+      
+      return {
+        error: {
+          message: errorMessage,
+        },
+      };
+    }
   };
 
   const signOut = async () => {
