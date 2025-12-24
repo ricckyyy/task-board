@@ -54,13 +54,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
     }
     try {
-      const { error } = await supabase.auth.signUp({ email, password });
-      return { error };
+      const { data, error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+        }
+      });
+      
+      if (error) {
+        console.error('Signup error:', error);
+        return { error };
+      }
+      
+      return { error: null };
     } catch (err) {
-      console.error('Signup error:', err);
+      console.error('Signup exception:', err);
+      // ネットワークエラーやその他の例外の場合
       return {
         error: {
-          message: 'アカウント作成に失敗しました。環境設定とネットワーク接続を確認してください。',
+          message: err instanceof Error ? err.message : 'アカウント作成に失敗しました。ネットワーク接続を確認してください。',
         },
       };
     }
@@ -75,13 +88,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       };
     }
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      return { error };
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) {
+        console.error('Sign in error:', error);
+        return { error };
+      }
+      
+      return { error: null };
     } catch (err) {
-      console.error('Sign in error:', err);
+      console.error('Sign in exception:', err);
+      // ネットワークエラーやその他の例外の場合
       return {
         error: {
-          message: 'ログインに失敗しました。環境設定とネットワーク接続を確認してください。',
+          message: err instanceof Error ? err.message : 'ログインに失敗しました。ネットワーク接続を確認してください。',
         },
       };
     }

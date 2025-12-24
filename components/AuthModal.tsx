@@ -28,7 +28,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       if (error) {
         setError(error.message);
       } else {
-        setMessage('確認メールを送信しました。メールを確認してください。');
+        setMessage('アカウントを作成しました。メールアドレスに確認メールが送信された場合は、メールを確認してください。');
         setEmail('');
         setPassword('');
       }
