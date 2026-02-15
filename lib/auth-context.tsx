@@ -30,7 +30,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // 現在のセッションをチェック
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then((res: any) => {
+      const session = res?.data?.session;
       setUser(session?.user ?? null);
       setLoading(false);
     });
@@ -38,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 認証状態の変更を監視
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       setUser(session?.user ?? null);
     });
 
