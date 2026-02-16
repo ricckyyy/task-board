@@ -15,8 +15,10 @@ tools: ['search/codebase', 'runCommands']
 - どのファイルが影響を受けるか列挙
 
 ## 3. テスト要否の判断
+- `package.json`のscriptsを確認し、利用可能なテストコマンド(`test`, `test:unit`, `test:e2e`など)を特定
 - 既存テストでカバーされているか?
 - 追加テストが必要な変更か?
+- テストスクリプトがない場合、最低限 `npm run build` と `npm run lint` の実行を推奨
 
 ## 4. リリースノートの要約
 - 主な変更点を3つ以内で要約
